@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Engine Cooling | Digital Twin Lab</title>
+<style>
+:root{--navy:#070d22;--gold:#b18b50;--ink:#14283b;--muted:#617181;--line:#d6dee4;--paper:#eef1f3;--hot:#d76d42;--cold:#258caf;--green:#18734d;--amber:#a76618;--red:#b3261e}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.5 Inter,Arial,sans-serif}header{background:var(--navy);color:white;padding:13px max(4vw,20px);display:flex;align-items:center;gap:15px}header .mark{height:40px;width:40px;border:2px solid var(--gold);border-radius:50%;display:grid;place-items:center;color:#e6c994;font-weight:800}header b{letter-spacing:.04em}header span{margin-left:auto;color:#d8bd8e;font-size:12px}main{max-width:1500px;margin:auto;padding:24px 4vw}h1{font-size:clamp(28px,3.6vw,46px);letter-spacing:-.045em;line-height:1.1;margin:0}h2{font-size:18px;margin:0 0 12px}h3{font-size:14px;margin:0 0 8px}p{margin:5px 0 14px}.sub{color:var(--muted);max-width:900px}.kpis,.layout,.lower{display:grid;gap:13px}.kpis{grid-template-columns:repeat(4,1fr);margin:19px 0 13px}.tile,article,details{background:white;border:1px solid var(--line);border-radius:12px;padding:16px}.tile{border-top:3px solid var(--gold)}.tile small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}.tile b{display:block;font:650 clamp(19px,2vw,29px)/1.55 ui-monospace,Consolas,monospace}.layout{grid-template-columns:1.45fr 1fr}.lower{grid-template-columns:1.3fr 1fr;margin:13px 0}article{min-width:0}.viewport{background:radial-gradient(ellipse at 50% 45%,#344b59,#142431 62%,#091624);color:white}.bar{display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap}.bar label{font-weight:600}button,select{font:inherit;padding:7px 10px;border:1px solid #bcc7ce;border-radius:6px;background:white;color:#14283b;cursor:pointer}button:hover{background:#f2eadc}button.primary{background:#10283b;color:white;border-color:#10283b}button:disabled{opacity:.5;cursor:not-allowed}input{accent-color:var(--gold)}input[type=range]{width:100%;margin:5px 0 12px}label{display:block}output{font:600 15px ui-monospace,monospace}canvas{display:block;width:100%}#scene{height:clamp(250px,27vw,360px);touch-action:none;cursor:grab}#plot{height:210px}#residualPlot{height:150px}.field{margin:12px 0}.field .bar{margin-bottom:2px}.pill{display:inline-block;padding:3px 8px;border-radius:99px;font-size:11px;font-weight:700;background:#e7edf0;color:#31485b}.pill.good{background:#e3f2e9;color:var(--green)}.pill.warn{background:#fff0d8;color:var(--amber)}.pill.bad{background:#fde8e7;color:var(--red)}.status{font-weight:700}.goodText{color:var(--green)}.warnText{color:var(--amber)}.badText{color:var(--red)}.legend{display:flex;gap:13px;flex-wrap:wrap;color:#d0dce2;font-size:11px;margin:8px 0}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12px}th,td{padding:7px 6px;border-bottom:1px solid #e0e5e9;text-align:right}th:first-child,td:first-child{text-align:left}th{color:var(--muted);font-weight:600}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.metric{font:600 15px ui-monospace,monospace}.note{font-size:11px;color:var(--muted)}details{margin-top:10px}summary{font-weight:700;cursor:pointer}footer{background:var(--navy);color:#d8bd8e;padding:20px 4vw;font-size:12px}.diag{padding:10px;border-radius:8px;background:#f2f5f6;margin:9px 0}.diag strong{display:block;margin-bottom:3px}.quality{font-size:11px;color:var(--muted)}@media(max-width:850px){.layout,.lower{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}header span{display:none}}@media(max-width:520px){main{padding:18px 12px}.kpis{gap:8px}.tile,article{padding:12px}.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="mark">CT</div><b>ENGINEERING DIGITAL TWIN LAB</b><span>ENGINE COOLING SYSTEM · RELEASE 1 · SIMULATION ONLY</span></header>
+<main>
+<h1>Advanced engine cooling digital twin</h1>
+<p class="sub">Real-time thermal and hydraulic simulation with independent model prediction, residual monitoring and controlled fault injection. No physical ECU or actuator interface is enabled.</p>
+<div class="kpis">
+ <div class="tile"><small>Plant outlet temperature</small><b id="kTemp">—</b><span class="quality">Simulated sensor channel</span></div>
+ <div class="tile"><small>Coolant circulation</small><b id="kFlow">—</b><span class="quality">Plant flow measurement</span></div>
+ <div class="tile"><small>Radiator heat rejection</small><b id="kHeat">—</b><span class="quality">Plant thermal balance</span></div>
+ <div class="tile"><small>Twin temperature prediction</small><b id="kTwin">—</b><span class="quality">Independent healthy reference</span></div>
+</div>
+<div class="layout">
+ <article class="viewport">
+  <div class="bar"><h2>Cooling circuit overview</h2><select id="viewMode"><option value="live">Operating view</option><option value="thermal">Thermal intensity</option><option value="flow">Flow path</option></select></div>
+  <canvas id="scene" aria-label="Engine cooling circuit schematic"></canvas>
+  <div class="bar"><label><input type="checkbox" id="showLabels" checked> Component labels</label><button id="resetView">Reset view</button></div>
+  <div class="legend"><span><i class="dot" style="background:var(--hot)"></i>Hot coolant</span><span><i class="dot" style="background:var(--cold)"></i>Cooled coolant</span><span><i class="dot" style="background:#d7bb85"></i>Heat transfer</span></div>
+  <div id="sceneReadout" class="note" style="color:#e5d5b6"></div>
+ </article>
+ <article>
+  <div class="bar"><h2>Operating conditions</h2><span class="pill">INPUTS</span></div>
+  <div class="field"><div class="bar"><label for="rpm">Engine speed</label><output id="rpmOut">2,000 rpm</output></div><input id="rpm" type="range" min="700" max="6500" step="100" value="2000"></div>
+  <div class="field"><div class="bar"><label for="load">Engine load</label><output id="loadOut">45%</output></div><input id="load" type="range" min="5" max="100" step="1" value="45"></div>
+  <div class="field"><div class="bar"><label for="ambient">Ambient temperature</label><output id="ambientOut">30 °C</output></div><input id="ambient" type="range" min="-10" max="50" step="1" value="30"></div>
+  <div class="field"><div class="bar"><label for="vehicle">Vehicle speed</label><output id="vehicleOut">60 km/h</output></div><input id="vehicle" type="range" min="0" max="180" step="5" value="60"></div>
+  <div class="bar"><h3>Plant fault injection</h3><span class="pill warn">SIMULATED</span></div>
+  <select id="fault" style="width:100%"><option value="normal">Normal operation</option><option value="pump">Pump degradation — 60% health</option><option value="fan">Cooling fan degradation — 50% health</option><option value="radiator">Radiator restriction — 35% reduction</option><option value="thermostat">Thermostat partially closed</option><option value="sensor_bias">Temperature sensor bias — +8 °C</option><option value="sensor_dropout">Temperature sensor dropout</option></select>
+  <div class="actions"><button class="primary" id="pause">Pause</button><button id="step">Step 1 min</button><button id="reset">Reset simulation</button></div>
+  <div class="bar"><span class="note">Simulation clock</span><b class="metric" id="clock">00:00</b></div>
+  <p class="note">One real second advances one simulated minute. The twin remains healthy while faults are injected into the plant model only.</p>
+ </article>
+</div>
+<div class="lower">
+ <article><div class="bar"><h2>Plant vs. Digital Twin</h2><span class="pill">LIVE TREND</span></div><div class="legend" style="color:#536777"><span><i class="dot" style="background:var(--hot)"></i>Plant measurement</span><span><i class="dot" style="background:var(--cold)"></i>Twin prediction</span></div><canvas id="plot"></canvas><div class="two"><div><small class="note">Temperature residual</small><div class="metric" id="tempResidual">—</div></div><div><small class="note">Flow residual</small><div class="metric" id="flowResidual">—</div></div></div></article>
+ <article><div class="bar"><h2>Diagnostics & data quality</h2><span id="diagBadge" class="pill good">NORMAL</span></div>
+  <div class="diag"><strong id="diagTitle">No significant deviation detected</strong><span id="diagEvidence" class="note">Residuals within demonstration limits</span></div>
+  <table><thead><tr><th>Parameter</th><th>Plant</th><th>Twin</th><th>Residual</th></tr></thead><tbody id="comparison"></tbody></table>
+  <div class="bar"><span class="note">Temperature sensor quality</span><b id="quality" class="metric">GOOD</b></div>
+  <div class="bar"><span class="note">Fault hypothesis confidence</span><b id="confidence" class="metric">90%</b></div>
+ </article>
+</div>
+<details><summary>Model equations and assumptions</summary>
+<p><b>Model class:</b> reduced-order, lumped-parameter transient thermal model with a simplified coolant-flow and radiator effectiveness relationship.</p>
+<table><tbody>
+<tr><td>Brake power proxy</td><td><code>Pbrake = 60 × (RPM / 2000) × Load</code> kW</td></tr>
+<tr><td>Heat to coolant</td><td><code>Qengine = 0.32 × Pbrake</code> kW</td></tr>
+<tr><td>Coolant flow</td><td><code>Flow = (28 + 0.006 × RPM) × PumpHealth</code> L/min</td></tr>
+<tr><td>Radiator heat rejection</td><td><code>Qrad = UAeff × max(0, Tmean − Tambient)</code> kW</td></tr>
+<tr><td>Thermal storage</td><td><code>Cth × dT/dt = Qengine − Qrad − Qother</code></td></tr>
+<tr><td>Model residual</td><td><code>rT = Tplant,measured − Ttwin,predicted</code></td></tr>
+</tbody></table>
+<p><b>Initial placeholders:</b> coolant specific heat 3.6 kJ/kg·K; lumped thermal capacity 180 kJ/K; nominal radiator UA 0.17 kW/K. These are demonstration parameters only. They require OEM data, measured pump/fan maps and test-bench calibration before representing a specific engine.</p>
+<p><b>Diagnostic philosophy:</b> data-quality validation → independent twin prediction → residual calculation → fault hypothesis. Severity and confidence are reported separately. This prototype implements initial deterministic signatures, not a validated diagnostic classifier.</p>
+</details>
+<details><summary>Acceptance test notes</summary>
+<ul><li>Normal operation: plant and healthy twin should track closely.</li><li>Higher load: engine heat input should increase.</li><li>Pump degradation: flow residual should become negative and thermal deviation should develop.</li><li>Fan, radiator and thermostat faults: plant temperature should diverge upward from the healthy twin.</li><li>Sensor bias/dropout: diagnostic layer should identify measurement deviation or bad quality without treating missing data as zero.</li></ul>
+</details>
+</main>
+<footer>ENGINEERING DIGITAL TWIN · AUTOMOTIVE THERMAL MANAGEMENT · SIMULATION ONLY · NOT FOR SAFETY-CRITICAL USE</footer>
+<script src="cooling_model.js"></script>
+<script>
+(()=>{
+ const $=id=>document.getElementById(id);let sim=CoolingModel.createSimulation(),running=true,yaw=0,dragX=null,spin=0,lastSample=null;
+ const readInputs=()=>({rpm:+$('rpm').value,load:+$('load').value/100,ambientC:+$('ambient').value,vehicleKph:+$('vehicle').value});
+ const fmt=(n,d=1)=>Number.isFinite(n)?n.toFixed(d):'—';
+ function tick(){lastSample=CoolingModel.advance(sim,readInputs(),$('fault').value,60);render(lastSample);}
+ function clock(m){const total=Math.round(m);return String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0')}
+ function render(s){const p=s.plant,t=s.twin,r=s.residuals,d=s.diagnostic;
+  $('kTemp').textContent=p.measuredOutletC==null?'—':fmt(p.measuredOutletC)+' °C';$('kFlow').textContent=fmt(p.flowLpm)+' L/min';$('kHeat').textContent=fmt(p.qRadiatorKW)+' kW';$('kTwin').textContent=fmt(t.trueOutletC)+' °C';
+  $('rpmOut').textContent=Math.round(p.rpm).toLocaleString()+' rpm';$('loadOut').textContent=Math.round(p.load*100)+'%';$('ambientOut').textContent=p.ambientC+' °C';$('vehicleOut').textContent=p.vehicleKph+' km/h';$('clock').textContent=clock(s.minute);
+  $('tempResidual').textContent=r.tempResidualC==null?'N/A':fmt(r.tempResidualC)+' °C';$('flowResidual').textContent=fmt(r.flowResidualLpm)+' L/min';$('quality').textContent=p.temperatureQuality;
+  $('diagTitle').textContent=d.hypothesis;$('diagEvidence').textContent=d.evidence.join(' · ');$('confidence').textContent=Math.round(d.confidence*100)+'%';
+  const badge=$('diagBadge');badge.textContent=d.state.replaceAll('_',' ');badge.className='pill '+(d.severity==='HIGH'?'bad':d.severity==='WARNING'?'warn':'good');
+  const rows=[['Outlet temperature','°C',p.measuredOutletC,t.trueOutletC,r.tempResidualC],['Coolant flow','L/min',p.flowLpm,t.flowLpm,r.flowResidualLpm],['Radiator duty','kW',p.qRadiatorKW,t.qRadiatorKW,r.heatResidualKW],['Engine heat input','kW',p.qEngineKW,t.qEngineKW,p.qEngineKW-t.qEngineKW]];
+  $('comparison').innerHTML=rows.map(([n,u,a,b,c])=>`<tr><td>${n}</td><td>${a==null?'N/A':fmt(a,2)}</td><td>${fmt(b,2)}</td><td>${c==null?'N/A':fmt(c,2)}</td></tr>`).join('');
+  $('sceneReadout').textContent=`Plant: ${fmt(p.trueOutletC)} °C · Twin: ${fmt(t.trueOutletC)} °C · Flow: ${fmt(p.flowLpm)} L/min · Fan: ${Math.round(p.fanCommand*100)}%`;
+  drawPlot();drawScene(p);
+ }
+ function drawPlot(){const c=$('plot'),w=Math.max(c.clientWidth,300),h=210,dpr=Math.min(devicePixelRatio||1,2);c.width=w*dpr;c.height=h*dpr;const a=c.getContext('2d');a.setTransform(dpr,0,0,dpr,0,0);a.clearRect(0,0,w,h);const hist=sim.history.slice(-60);for(let temp=60;temp<=140;temp+=20){const y=180-(temp-60)*1.7;a.strokeStyle='#e0e6ea';a.beginPath();a.moveTo(42,y);a.lineTo(w-8,y);a.stroke();a.fillStyle='#526678';a.font='11px Arial';a.fillText(temp+'°',3,y+4)}
+  const series=[['plant','#d76d42',x=>x.plant.measuredOutletC],['twin','#258caf',x=>x.twin.trueOutletC]];for(const [,color,get] of series){a.strokeStyle=color;a.lineWidth=2;a.beginPath();let started=false;hist.forEach((x,i)=>{const val=get(x);if(val==null){started=false;return}const px=43+i*(w-55)/Math.max(59,hist.length-1),py=180-(val-60)*1.7;if(!started){a.moveTo(px,py);started=true}else a.lineTo(px,py)});a.stroke()}a.fillStyle='#526678';a.fillText(hist.length?clock(hist[0].minute):'00:00',43,203);a.fillText('Latest',w-48,203)}
+ function drawScene(p){const c=$('scene'),w=Math.max(c.clientWidth,300),h=c.clientHeight,d=Math.min(devicePixelRatio||1,2);if(c.width!==Math.round(w*d)||c.height!==Math.round(h*d)){c.width=w*d;c.height=h*d}const a=c.getContext('2d');a.setTransform(d,0,0,d,0,0);a.clearRect(0,0,w,h);const thermal=$('viewMode').value==='thermal',flowMode=$('viewMode').value==='flow',hot=CoolingModel.clamp((p.trueOutletC-70)/65,0,1),hotColor=thermal?`rgb(${Math.round(130+hot*100)},${Math.round(105-hot*55)},${Math.round(65-hot*35)})`:'#df754c',cold='#36a5c8';const scale=Math.min(w/760,h/340);a.save();a.translate(w/2,h/2+5);a.rotate(yaw*.10);a.scale(scale,scale);
+  // radiator and fan
+  a.fillStyle='#253f50';a.fillRect(160,-90,105,180);a.strokeStyle='#9eb2bc';a.lineWidth=3;a.strokeRect(160,-90,105,180);for(let i=0;i<12;i++){a.strokeStyle='#718f9e';a.lineWidth=2;a.beginPath();a.moveTo(168+i*8,-82);a.lineTo(168+i*8,82);a.stroke()}
+  // engine block and cylinder head
+  a.fillStyle='#687e8a';a.fillRect(-105,-68,195,138);a.fillStyle='#a6b5bc';a.fillRect(-91,-95,165,29);a.strokeStyle='#d3dfe4';a.lineWidth=3;a.strokeRect(-105,-68,195,138);for(let i=0;i<4;i++){a.fillStyle='#344d5b';a.fillRect(-80+i*44,-50,29,100)}
+  // pump
+  a.fillStyle='#b9c8ce';a.beginPath();a.arc(-195,92,32,0,Math.PI*2);a.fill();a.strokeStyle='#607987';a.stroke();a.fillStyle='#2c4859';a.beginPath();a.arc(-195,92,11,0,Math.PI*2);a.fill();
+  // coolant pipes
+  function pipe(points,color,width=14){a.strokeStyle=color;a.lineWidth=width;a.lineCap='round';a.lineJoin='round';a.beginPath();points.forEach((pt,i)=>i?a.lineTo(...pt):a.moveTo(...pt));a.stroke()}
+  pipe([[-195,61],[-195,-125],[210,-125],[210,-90]],hotColor,15);pipe([[210,90],[210,128],[-195,128],[-195,124]],cold,15);pipe([[-195,92],[-140,92],[-105,30]],cold,12);pipe([[90,-42],[130,-42],[160,-42]],hotColor,12);
+  // fan rotor
+  a.fillStyle='#aabcc4';a.beginPath();a.arc(212,0,39,0,Math.PI*2);a.fill();a.strokeStyle='#4e6876';a.stroke();for(let i=0;i<7;i++){a.save();a.translate(212,0);a.rotate(spin+i*Math.PI*2/7);a.fillStyle='#3b5968';a.beginPath();a.ellipse(0,-21,7,19,0,0,Math.PI*2);a.fill();a.restore()}
+  if($('showLabels').checked){a.font='bold 13px Arial';a.fillStyle='#fff';a.fillText('ENGINE',-65,5);a.fillText('RADIATOR',160,-103);a.fillText('FAN',198,62);a.fillText('PUMP',-222,148);a.fillStyle='#f0d39b';a.fillText('HOT OUTLET',8,-145);a.fillStyle='#8ed8ed';a.fillText('COOLED RETURN',5,157)}
+  if(flowMode){a.fillStyle='white';a.font='bold 16px Arial';a.fillText('COOLANT FLOW  '+fmt(p.flowLpm)+' L/min',-105,195)}a.restore();}
+ $('pause').onclick=()=>{running=!running;$('pause').textContent=running?'Pause':'Resume'};$('step').onclick=()=>tick();$('reset').onclick=()=>{sim=CoolingModel.createSimulation();running=true;$('pause').textContent='Pause';lastSample=CoolingModel.advance(sim,readInputs(),$('fault').value,0);render(lastSample)};$('resetView').onclick=()=>{yaw=0;spin=0;drawScene(lastSample?.plant||{trueOutletC:90,flowLpm:40,fanCommand:.3})};
+ ['rpm','load','ambient','vehicle','fault','viewMode','showLabels'].forEach(id=>$(id).addEventListener('input',()=>{if(lastSample)render(lastSample)}));$('scene').addEventListener('pointerdown',e=>{dragX=e.clientX;$('scene').setPointerCapture(e.pointerId)});$('scene').addEventListener('pointermove',e=>{if(dragX!==null){yaw+=(e.clientX-dragX)*.01;dragX=e.clientX;if(lastSample)drawScene(lastSample.plant)}});$('scene').addEventListener('pointerup',()=>dragX=null);$('scene').addEventListener('pointercancel',()=>dragX=null);
+ lastSample=CoolingModel.advance(sim,readInputs(),$('fault').value,0);render(lastSample);setInterval(()=>{if(running){tick();spin+=.09}},1000);window.addEventListener('resize',()=>{if(lastSample)render(lastSample)});
+})();
+</script>
+</body></html>
